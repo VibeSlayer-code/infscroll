@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfScroll - Hands-Free Scrolling Revolution</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        'neon': '#00ff88',
+                        'electric': '#0066ff',
+                        'cyber': '#ff0080',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0066ff;
+            --secondary: #00ff88;
+            --accent: #ff0080;
+            --dark: #0a0a0a;
+            --darker: #050505;
+            --light: #ffffff;
+            --gray: #888;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--darker);
+            color: var(--light);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(0, 102, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 0, 128, 0.08) 0%, transparent 50%),
+                linear-gradient(135deg, #050505 0%, #0a0a0a 100%);
+            z-index: -2;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 102, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 102, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid-move 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--dark); }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            background: rgba(10, 10, 10, 0.55);
+            width: 100%;
+            padding: 1rem 0;
+            backdrop-filter: blur(20px);
+            
+            border-bottom: 1px solid rgba(0, 102, 255, 0.1);
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        nav.scrolled {
+            background: rgba(5, 5, 5, 0.95);
+            border-bottom-color: rgba(0, 102, 255, 0.2);
+            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+        }
+
+        .logo:hover::after { width: 100%; }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            position: relative;
+            color: #ccc;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 102, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .nav-link:hover::before { left: 100%; }
+
+        .nav-link:hover {
+            color: var(--light);
+            background: rgba(0, 102, 255, 0.05);
+            transform: translateY(-1px);
+        }
+
+        .install-btn {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: var(--light);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .install-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .install-btn:hover::before { left: 100%; }
+        .install-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 102, 255, 0.4);
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 1000px;
+            z-index: 2;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 102, 255, 0.1);
+            border: 1px solid rgba(0, 102, 255, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            color: var(--secondary);
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease-out;
+            opacity: 1;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--light) 0%, var(--primary) 50%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.125rem, 3vw, 1.5rem);
+            color: #ccc;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .hero-cta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1.2s ease-out 0.6s both;
+        }
+
+        .cta-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: var(--light);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px rgba(0, 102, 255, 0.3);
+        }
+
+        .cta-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--light);
+            padding: 1rem 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .cta-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 40px rgba(0, 102, 255, 0.4);
+        }
+
+        .cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+            animation: fadeInUp 1.4s ease-out 0.8s both;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: block;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .floating-element {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-element:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-element:nth-child(2) {
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .floating-element:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .features {
+            padding: 8rem 2rem;
+            position: relative;
+        }
+
+        .features-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-badge {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: var(--secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--light), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            font-size: 1.25rem;
+            color: #999;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            cursor: pointer;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .feature-card:hover::before { opacity: 1; }
+
+        .feature-card:hover {
+            transform: translateY(-10px) rotateX(3deg) rotateY(3deg) scale(1.05);
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(0, 102, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 102, 255, 0.2), inset 0 0 30px rgba(0, 102, 255, 0.15);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: rotate(8deg) scale(1.15) translateZ(30px);
+            box-shadow: 0 12px 40px rgba(0, 102, 255, 0.4);
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--light);
+        }
+
+        .feature-description {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .platforms {
+            padding: 8rem 2rem;
+            background: rgba(0, 102, 255, 0.02);
+            position: relative;
+        }
+
+        .platforms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .platform-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 2.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        .platform-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 102, 255, 0.15) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .platform-card:hover::before {
+            opacity: 1;
+            animation: rotate 2.5s linear infinite;
+        }
+
+        .platform-card:hover {
+            transform: translateY(-12px) rotateX(3deg) rotateY(3deg) scale(1.03);
+            border-color: rgba(0, 102, 255, 0.3);
+            box-shadow: 0 25px 80px rgba(0, 102, 255, 0.2), inset 0 0 30px rgba(0, 102, 255, 0.15);
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .platform-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .platform-card:hover .platform-icon {
+            transform: scale(1.15) rotateY(180deg) translateZ(30px);
+            box-shadow: 0 12px 40px rgba(0, 102, 255, 0.4);
+        }
+
+        .platform-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--light);
+        }
+
+        .platform-subtitle {
+            color: #999;
+            font-weight: 500;
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 4rem 2rem 2rem;
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-brand h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand p {
+            color: #999;
+            line-height: 1.6;
+        }
+
+        .footer-links h4 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--light);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: #999;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 2rem;
+            text-align: center;
+            color: #666;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-stats {
+                gap: 2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .platforms-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                padding: 0 1rem;
+            }
+            
+            .hero, .features, .platforms {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+
+        .gpu-accelerated {
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            perspective: 1000;
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .animate-on-scroll.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <nav id="navbar">
+        <div class="nav-container">
+            <div class="logo">InfScroll</div>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#platforms" class="nav-link">Platforms</a>
+                <a href="#download" class="nav-link">Download</a>
+                <a href="https://chrome.google.com/webstore" class="install-btn">
+                    <i data-lucide="chrome" class="w-4 h-4" style="stroke: white; stroke-width: 2;"></i>
+                    Add to Chrome
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="floating-element">
+            <i data-lucide="play-circle" class="w-16 h-16"></i>
+        </div>
+        <div class="floating-element">
+            <i data-lucide="smartphone" class="w-12 h-12"></i>
+        </div>
+        <div class="floating-element">
+            <i data-lucide="zap" class="w-14 h-14"></i>
+        </div>
+        
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                Free • Lightweight • Privacy-First
+            </div>
+            
+            <h1 class="hero-title">
+                Hands-Free<br>
+                <span style="background: linear-gradient(45deg, #00ff88, #0066ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Scrolling Revolution</span>
+            </h1>
+            
+            <p class="hero-subtitle">
+                Auto-advance through Instagram Reels, TikTok, and YouTube Shorts with intelligent video detection
+            </p>
+            
+            <div class="hero-cta">
+                <a href="https://chrome.google.com/webstore" class="cta-primary">
+                    <i data-lucide="download" class="w-5 h-5" style="stroke: white; stroke-width: 2;"></i>
+                    Get InfScroll Free
+                </a>
+            </div>
+            
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">50K+</span>
+                    <span class="stat-label">Active Users</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">4.9★</span>
+                    <span class="stat-label">Chrome Rating</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">0ms</span>
+                    <span class="stat-label">Loading Time</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="features-container">
+            <div class="section-header animate-on-scroll">
+                <div class="section-badge">Features</div>
+                <h2 class="section-title">Built for Power Users</h2>
+                <p class="section-subtitle">
+                    Advanced features that transform how you consume short-form content
+                </p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card animate-on-scroll gpu-accelerated">
+                    <div class="feature-icon">
+                        <i data-lucide="brain" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <h3 class="feature-title">AI-Powered Detection</h3>
+                    <p class="feature-description">
+                        Machine learning algorithms detect video completion with 99.9% accuracy across all platforms
+                    </p>
+                </div>
+                
+                <div class="feature-card animate-on-scroll gpu-accelerated">
+                    <div class="feature-icon">
+                        <i data-lucide="gauge" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <h3 class="feature-title">Adaptive Timing</h3>
+                    <p class="feature-description">
+                        Smart delays that adjust based on your viewing patterns and video length
+                    </p>
+                </div>
+                
+                <div class="feature-card animate-on-scroll gpu-accelerated">
+                    <div class="feature-icon">
+                        <i data-lucide="command" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <h3 class="feature-title">Hotkey Control</h3>
+                    <p class="feature-description">
+                        Customizable keyboard shortcuts for instant control without touching your mouse
+                    </p>
+                </div>
+                
+                <div class="feature-card animate-on-scroll gpu-accelerated">
+                    <div class="feature-icon">
+                        <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <h3 class="feature-title">Zero Tracking</h3>
+                    <p class="feature-description">
+                        Complete privacy protection - no data collection, analytics, or external connections
+                    </p>
+                </div>
+                
+                <div class="feature-card animate-on-scroll gpu-accelerated">
+                    <div class="feature-icon">
+                        <i data-lucide="cpu" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <h3 class="feature-title">Ultra-Lightweight</h3>
+                    <p class="feature-description">
+                        Less than 50KB total size with optimized algorithms for minimal system impact
+                    </p>
+                </div>
+                
+                <div class="feature-card animate-on-scroll gpu-accelerated">
+                    <div class="feature-icon">
+                        <i data-lucide="settings" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <h3 class="feature-title">Granular Control</h3>
+                    <p class="feature-description">
+                        Fine-tune scrolling behavior, timing, and platform-specific settings with precision
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="platforms" id="platforms">
+        <div class="features-container">
+            <div class="section-header animate-on-scroll">
+                <div class="section-badge">Platforms</div>
+                <h2 class="section-title">Universal Compatibility</h2>
+                <p class="section-subtitle">
+                    Seamlessly works across all major short-video platforms
+                </p>
+            </div>
+            
+            <div class="platforms-grid">
+                <div class="platform-card animate-on-scroll gpu-accelerated">
+                    <div class="platform-icon">
+                        <i data-lucide="instagram" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="platform-title">Instagram</h3>
+                    <p class="platform-subtitle">Reels Feed & Stories</p>
+                </div>
+                
+                <div class="platform-card animate-on-scroll gpu-accelerated">
+                    <div class="platform-icon">
+                        <svg class="w-10 h-10 text-white" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                        </svg>
+                    </div>
+                    <h3 class="platform-title">TikTok</h3>
+                    <p class="platform-subtitle">For You Page</p>
+                </div>
+                
+                <div class="platform-card animate-on-scroll gpu-accelerated">
+                    <div class="platform-icon">
+                        <i data-lucide="youtube" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="platform-title">YouTube</h3>
+                    <p class="platform-subtitle">Shorts Feed</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="download" style="background: rgba(0, 102, 255, 0.02);">
+        <div class="features-container">
+            <div class="section-header animate-on-scroll">
+                <div class="section-badge">Installation</div>
+                <h2 class="section-title">Get Started in Seconds</h2>
+                <p class="section-subtitle">
+                    Simple one-click installation with zero configuration needed
+                </p>
+            </div>
+            
+            <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+                <div class="hero-cta animate-on-scroll" style="margin-bottom: 3rem;">
+                    <a href="https://chrome.google.com/webstore" class="cta-primary" style="font-size: 1.125rem; padding: 1.25rem 2.5rem;">
+                        <i data-lucide="chrome" class="w-6 h-6" style="stroke: white; stroke-width: 2;"></i>
+                        Add to Chrome - It's Free
+                    </a>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 3rem;">
+                    <div class="animate-on-scroll" style="text-align: center;">
+                        <div style="width: 64px; height: 64px; background: linear-gradient(45deg, var(--primary), var(--secondary)); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                            <span style="color: white; font-size: 1.5rem; font-weight: bold;">1</span>
+                        </div>
+                        <h4 style="color: #fff; font-weight: 600; margin-bottom: 0.5rem;">Click Install</h4>
+                        <p style="color: #999; font-size: 0.875rem;">Add extension to Chrome</p>
+                    </div>
+                    
+                    <div class="animate-on-scroll" style="text-align: center;">
+                        <div style="width: 64px; height: 64px; background: linear-gradient(45deg, var(--primary), var(--secondary)); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                            <span style="color: white; font-size: 1.5rem; font-weight: bold;">2</span>
+                        </div>
+                        <h4 style="color: #fff; font-weight: 600; margin-bottom: 0.5rem;">Visit Platform</h4>
+                        <p style="color: #999; font-size: 0.875rem;">Go to Instagram, TikTok, or YouTube</p>
+                    </div>
+                    
+                    <div class="animate-on-scroll" style="text-align: center;">
+                        <div style="width: 64px; height: 64px; background: linear-gradient(45deg, var(--primary), var(--secondary)); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                            <span style="color: white; font-size: 1.5rem; font-weight: bold;">3</span>
+                        </div>
+                        <h4 style="color: #fff; font-weight: 600; margin-bottom: 0.5rem;">Enjoy</h4>
+                        <p style="color: #999; font-size: 0.875rem;">Hands-free scrolling activated</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-brand animate-on-scroll">
+                    <h3>InfScroll</h3>
+                    <p>
+                        The ultimate hands-free scrolling extension for short-video platforms. 
+                        Built with privacy and performance in mind.
+                    </p>
+                    <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                        <a href="#" style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; transition: all 0.3s ease; text-decoration: none;">
+                            <i data-lucide="twitter" class="w-5 h-5"></i>
+                        </a>
+                        <a href="#" style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; transition: all 0.3s ease; text-decoration: none;">
+                            <i data-lucide="github" class="w-5 h-5"></i>
+                        </a>
+                        <a href="#" style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; transition: all 0.3s ease; text-decoration: none;">
+                            <i data-lucide="mail" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-links animate-on-scroll">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#platforms">Platforms</a></li>
+                        <li><a href="#download">Download</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links animate-on-scroll">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Bug Reports</a></li>
+                        <li><a href="#">Feature Requests</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links animate-on-scroll">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">GDPR</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 InfScroll. All rights reserved. Made with ❤️ for the community.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initializeAnimations();
+            initializeNavbar();
+            initializeSmoothScrolling();
+        });
+
+        function initializeNavbar() {
+            const navbar = document.getElementById('navbar');
+            let lastScrollY = window.scrollY;
+            
+            window.addEventListener('scroll', () => {
+                const currentScrollY = window.scrollY;
+                
+                if (currentScrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+                
+                lastScrollY = currentScrollY;
+            });
+        }
+
+        function initializeSmoothScrolling() {
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        const offset = 80;
+                        const elementPosition = target.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - offset;
+                        
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        }
+
+        function initializeAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.animate-on-scroll').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.cta-primary') || e.target.closest('.install-btn')) {
+                const button = e.target.closest('.cta-primary') || e.target.closest('.install-btn');
+                const href = button.getAttribute('href');
+                if (href !== '#') {
+                    window.location.href = href;
+                    return;
+                }
+                
+                e.preventDefault();
+                
+                const ripple = document.createElement('span');
+                const rect = button.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.cssText = `
+                    position: absolute;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.3);
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${x}px;
+                    top: ${y}px;
+                    animation: ripple 0.6s linear;
+                    pointer-events: none;
+                `;
+                
+                button.style.position = 'relative';
+                button.style.overflow = 'hidden';
+                button.appendChild(ripple);
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes ripple {
+                        0% { transform: scale(0); opacity: 1; }
+                        100% { transform: scale(2); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            }
+        });
+
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelectorAll('.floating-element');
+            
+            parallax.forEach((element, index) => {
+                const speed = 0.5 + (index * 0.1);
+                element.style.transform = `translateY(${scrolled * speed}px) rotate(${scrolled * 0.1}deg)`;
+            });
+        });
+    </script>
+</body>
+</html>
